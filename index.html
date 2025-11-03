@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>에코 퀴즈 (Eco Quiz)</title>
+  <style>
+    :root{--bg:#f4fbff;--card:#ffffff;--accent:#2b9edb;--muted:#667085}
+    *{box-sizing:border-box}
+    body{font-family:Inter, "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; min-height:100vh; background:linear-gradient(180deg,#eaf6ff 0%,var(--bg) 100%); color:#0b2235; display:flex; align-items:center; justify-content:center; padding:24px}
+    .wrap{width:100%;max-width:880px;background:var(--card);border-radius:16px;box-shadow:0 8px 30px rgba(18,52,76,0.08);overflow:hidden}
+
+    header{padding:18px 24px;border-bottom:1px solid #eef6fb;display:flex;align-items:center;justify-content:space-between}
+    header h1{font-size:18px;margin:0}
+    .meta{font-size:13px;color:var(--muted)}
+
+    .stage{padding:28px}
+    .question-card{display:flex;flex-direction:column;gap:16px}
+    .qtop{display:flex;justify-content:space-between;align-items:center}
+    .qnum{font-weight:600}
+    .progress{height:8px;background:#eef6fb;border-radius:999px;overflow:hidden;flex:1;margin-left:12px}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#6ed0ff);width:0%}
+
+    .question{font-size:18px;line-height:1.4}
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+    .choice{padding:12px;border-radius:10px;border:1px solid #e6f3fb;background:linear-gradient(180deg,#fff,#fbfeff);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+    .choice:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(11,34,53,0.06)}
+    .choice.disabled{opacity:0.6;cursor:default}
+    .choice.correct{border-color: #10b981;background:#ecfdf5}
+    .choice.wrong{border-color:#f87171;background:#fff5f5}
+
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+    button{background:var(--accent);color:white;border:0;padding:10px 16px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:#eef6fb;color:var(--accent);border:1px solid #d5eefb}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* 결과 화면 */
+    .result{padding:28px;text-align:center}
+    .score{font-size:40px;font-weight:800}
+    .result-sub{color:var(--muted);margin-top:8px}
+
+    /* 풍선 */
+    .balloon-stage{position:relative;height:320px;margin-top:18px;overflow:hidden}
+    .balloon{position:absolute;bottom:-120px;width:64px;height:88px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;transform-origin:center bottom;transition:transform .14s ease}
+    .balloon:after{content:'';display:block;width:6px;height:22px;background:rgba(0,0,0,0.08);border-radius:4px;margin-bottom:8px}
+    .balloon::before{content:'';position:absolute;bottom:-22px;width:2px;height:30px;background: rgba(0,0,0,0.08);left:50%;transform:translateX(-50%)}
+    .balloon.pop{transform:scale(0);opacity:0}
+
+    @keyframes floatUp{0%{transform:translateY(0)}100%{transform:translateY(-560px)}}
+
+    .burst{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+    .burst-circle{width:16px;height:16px;border-radius:50%;opacity:0;transform:scale(0);animation:burst .5s forwards}
+    @keyframes burst{to{opacity:1;transform:scale(3);filter:blur(.5px);opacity:0}}
+
+    /* responsive */
+    @media (max-width:640px){.choices{grid-template-columns:1fr} .balloon-stage{height:240px}}
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application">
+    <header>
+      <h1>에코 퀴즈 — 환경 상식 테스트</h1>
+      <div class="meta">문제 10개 · 고등학생 수준 · 한국어</div>
+    </header>
+
+    <main class="stage">
+      <section id="quiz" aria-live="polite">
+        <!-- 동적 컨텐츠 삽입 -->
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // 문제 데이터 (한국어, 고등학생 수준) — 각 문항: text, choices[], correctIndex
+    const questions = [
+      {text: '지구 평균 기온이 장기간 상승하는 현상을 무엇이라 하는가?', choices: ['해양 산성화','지구 온난화','오존층 파괴','열섬 현상'], correct:1},
+      {text: '이산화탄소(CO₂)가 대기 중 농도가 높아지면 어떤 현상에 직접적으로 영향을 주는가?', choices: ['오존층 회복','온실효과 강화','산성비 감소','대기 중 산소 증가'], correct:1},
+      {text: '다음 중 생물다양성의 감소에 가장 큰 영향을 주는 요인은?', choices: ['해양 경계 변화','서식지 파괴','대기 중 질소 농도 감소','지구 자전속도 변화'], correct:1},
+      {text: '재생에너지에 속하지 않는 것은?', choices: ['태양광','풍력','석탄','지열'], correct:2},
+      {text: '산성비의 주된 원인 물질이 아닌 것은?', choices: ['질소산화물','황산화물','이산화탄소','휘발성 유기화합물'], correct:2},
+      {text: '오존층 파괴를 일으키는 물질로 알려진 것은?', choices: ['CFCs (프레온)', '이산화탄소', '메탄', '암모니아'], correct:0},
+      {text: '탄소중립(Carbon Neutral)의 의미로 옳은 것은?', choices: ['대기 중 이산화탄소를 모두 없애는 것','배출한 탄소만큼 흡수하거나 상쇄하는 것','공해물질 배출을 금지하는 정책','모든 화석연료 사용을 즉시 중단하는 것'], correct:1},
+      {text: '미세먼지(PM2.5)의 건강 영향으로 가장 거리가 먼 것은?', choices: ['호흡기 질환 악화','심혈관계 질환 증가','시력의 영구적 상실','폐 기능 저하'], correct:2},
+      {text: '생태계에서 생산자에 해당하는 생물군은?', choices: ['초식동물','분해자','식물','육식동물'], correct:2},
+      {text: '지구 평균온도 상승을 1.5°C 이내로 제한하기 위한 국제적 목표는 어느 협약의 맥락에서 제시되었는가?', choices: ['몬트리올 의정서','파리협정','교토의정서','런던 협약'], correct:1}
+    ];
+
+    // 상태
+    let idx = 0;
+    let score = 0;
+    let answered = false;
+
+    const quizEl = document.getElementById('quiz');
+
+    function renderQuestion(){
+      const q = questions[idx];
+      const percent = Math.round((idx/questions.length)*100);
+      quizEl.innerHTML = `
+        <div class="question-card">
+          <div class="qtop">
+            <div class="qnum">문제 ${idx+1} / ${questions.length}</div>
+            <div class="progress" aria-hidden="true"><i style="width:${percent}%"></i></div>
+          </div>
+
+          <div class="question">${q.text}</div>
+
+          <div class="choices" id="choices">
+            ${q.choices.map((c,i)=>`<div class="choice" data-index="${i}" tabindex="0">${String.fromCharCode(65+i)}. ${c}</div>`).join('')}
+          </div>
+
+          <div class="controls">
+            <div class="small">정답 수: <strong id="score">${score}</strong></div>
+            <div>
+              <button class="secondary" id="skip">다음으로</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      answered = false;
+      document.getElementById('score').textContent = score;
+
+      // 이벤트 바인딩
+      document.querySelectorAll('.choice').forEach(el=>{
+        el.addEventListener('click', onChoose);
+        el.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') onChoose.call(el,e); });
+      });
+      document.getElementById('skip').addEventListener('click', onNext);
+    }
+
+    function onChoose(e){
+      if(answered) return;
+      answered = true;
+      const selected = Number(this.dataset.index);
+      const q = questions[idx];
+      const choiceEls = document.querySelectorAll('.choice');
+      choiceEls.forEach((el)=>el.classList.add('disabled'));
+
+      if(selected === q.correct){
+        score++;
+        this.classList.add('correct');
+      } else {
+        this.classList.add('wrong');
+        // 정답 표시
+        const correctEl = Array.from(choiceEls).find(c=>Number(c.dataset.index)===q.correct);
+        if(correctEl) correctEl.classList.add('correct');
+      }
+
+      document.getElementById('score').textContent = score;
+
+      // 자동으로 다음 문제로 넘어가게 함 (1.1초 뒤)
+      setTimeout(()=>{
+        onNext();
+      },1100);
+    }
+
+    function onNext(){
+      // 다음 문제
+      idx++;
+      if(idx < questions.length){
+        renderQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult(){
+      quizEl.innerHTML = `
+        <div class="result" id="result-area">
+          <div class="score">${score} / ${questions.length}</div>
+          <div class="result-sub">${score >= Math.ceil(questions.length*0.8) ? '축하합니다! 환경 퀴즈에서 좋은 결과를 얻었어요.' : '수고했어요! 더 공부해보면 좋아요.'}</div>
+          <div class="balloon-stage" id="balloon-stage" aria-hidden="${score < Math.ceil(questions.length*0.8)}"></div>
+          <div style="margin-top:18px"><button id="retry">다시 풀기</button></div>
+        </div>
+      `;
+
+      document.getElementById('retry').addEventListener('click', ()=>{
+        idx = 0; score = 0; renderQuestion();
+      });
+
+      // 80% 이상일 때 풍선 효과
+      if(score >= Math.ceil(questions.length*0.8)){
+        launchBalloons();
+      }
+    }
+
+    // 풍선 로직
+    function launchBalloons(){
+      const stage = document.getElementById('balloon-stage');
+      const colors = ['#ff6b6b','#ffd166','#6bcB77','#4dabf7','#b388eb','#ff9f1c'];
+      const count = 12;
+
+      for(let i=0;i<count;i++){
+        const b = document.createElement('div');
+        b.className = 'balloon';
+        const left = Math.round((i/count)*100) + (Math.random()*10 - 5);
+        b.style.left = `calc(${left}% - 40px)`;
+        const color = colors[i % colors.length];
+        b.style.background = `radial-gradient(circle at 35% 20%, #fff8, transparent 30%), linear-gradient(180deg, ${shade(color,12)} 0%, ${color} 100%)`;
+        b.style.animation = `floatUp ${6 + Math.random()*6}s linear ${Math.random()*1}s forwards`;
+        b.style.transition = 'transform .12s ease, opacity .12s ease';
+
+        // click to pop
+        b.addEventListener('click', ()=>popBalloon(b));
+        stage.appendChild(b);
+      }
+
+      // 자동으로 순차 팝 연출
+      let i = 0;
+      const interval = setInterval(()=>{
+        const b = stage.children[i];
+        if(!b) { clearInterval(interval); return; }
+        popBalloon(b);
+        i++;
+      }, 450);
+    }
+
+    function popBalloon(el){
+      if(!el || el.classList.contains('pop')) return;
+      // 사운드
+      try{ playPopSound(); } catch(e){}
+      // 팝 애니메이션
+      el.classList.add('pop');
+      // burst effect
+      const burst = document.createElement('div');
+      burst.className = 'burst';
+      for(let i=0;i<6;i++){
+        const c = document.createElement('div');
+        c.className = 'burst-circle';
+        c.style.left = (Math.random()*120 - 10) + 'px';
+        c.style.top = (Math.random()*120 - 10) + 'px';
+        burst.appendChild(c);
+      }
+      el.appendChild(burst);
+    }
+
+    // 간단한 팝 사운드 (WebAudio)
+    function playPopSound(){
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(600, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.12);
+      g.gain.setValueAtTime(0.15, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + 0.14);
+    }
+
+    // 색상 섀딩 유틸 (간단)
+    function shade(hex, percent){
+      // accepts #rrggbb or named color — fallback
+      try{
+        const c = document.createElement('canvas'); const ctx = c.getContext('2d'); ctx.fillStyle = hex; const col = ctx.fillStyle;
+        // if col remains as rgba... just return hex
+      }catch(e){}
+      // crude: just return hex (we used linear gradient with same color)
+      return hex;
+    }
+
+    // 초기 렌더
+    renderQuestion();
+  </script>
+</body>
+</html>
