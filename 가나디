@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>에코 퀴즈 (Eco Quiz)</title>
+  <style>
+    :root {
+      --bg:#f4fbff; --card:#ffffff; --accent:#2b9edb; --muted:#667085;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Inter, "Noto Sans KR", system-ui;
+      margin: 0;
+      background: linear-gradient(180deg,#eaf6ff 0%,var(--bg) 100%);
+      min-height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .wrap {
+      width: 100%; max-width: 880px; background: var(--card);
+      border-radius: 16px; box-shadow: 0 8px 30px rgba(18,52,76,0.08);
+      overflow: hidden;
+    }
+    header {
+      padding: 18px 24px; border-bottom: 1px solid #eef6fb;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 18px; margin: 0; }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    .stage { padding: 28px; }
+    .question-card { display: flex; flex-direction: column; gap: 16px; }
+    .qtop { display: flex; justify-content: space-between; align-items: center; }
+    .progress { height: 8px; background:#eef6fb; border-radius:999px; overflow:hidden; flex:1; margin-left:12px; }
+    .progress > i { display:block; height:100%; background:linear-gradient(90deg,var(--accent),#6ed0ff); width:0%; }
+    .question { font-size: 18px; line-height:1.4; }
+    .choices { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .choice {
+      padding:12px; border-radius:10px; border:1px solid #e6f3fb;
+      background:linear-gradient(180deg,#fff,#fbfeff); cursor:pointer;
+      transition:transform .12s ease,box-shadow .12s ease;
+    }
+    .choice:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(11,34,53,0.06); }
+    .choice.disabled { opacity:0.6; cursor:default; }
+    .choice.correct { border-color:#10b981; background:#ecfdf5; }
+    .choice.wrong { border-color:#f87171; background:#fff5f5; }
+
+    .controls { display:flex; justify-content:space-between; align-items:center; margin-top:18px; }
+    button { background:var(--accent); color:white; border:0; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; }
+    button.secondary { background:#eef6fb; color:var(--accent); border:1px solid #d5eefb; }
+    .small { font-size:13px; color:var(--muted); }
+
+    .result { padding:28px; text-align:center; }
+    .score { font-size:40px; font-weight:800; }
+    .result-sub { color:var(--muted); margin-top:8px; }
+
+    .balloon-stage { position:relative; height:320px; margin-top:18px; overflow:hidden; }
+    .balloon {
+      position:absolute; bottom:-120px; width:64px; height:88px;
+      border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+      display:flex; align-items:flex-end; justify-content:center;
+      transform-origin:center bottom; transition:transform .14s ease;
+    }
+    .balloon::after {
+      content:''; display:block; width:6px; height:22px;
+      background:rgba(0,0,0,0.08); border-radius:4px; margin-bottom:8px;
+    }
+    .balloon.pop { transform:scale(0); opacity:0; }
+
+    @keyframes floatUp { 0%{transform:translateY(0);} 100%{transform:translateY(-560px);} }
+
+    /* 결과 이미지 스타일 */
+    .fail-img {
+      width: 80%;
+      max-width: 500px;
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .fail-text {
+      font-size: 28px;
+      font-weight: 700;
+      color: #e53e3e;
+      margin-top: 16px;
+    }
+
+    @media (max-width:640px){ .choices{grid-template-columns:1fr} .balloon-stage{height:240px} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>에코 퀴즈 — 환경 상식 테스트</h1>
+      <div class="meta">문제 10개 · 고등학생 수준 · 한국어</div>
+    </header>
+    <main class="stage">
+      <section id="quiz"></section>
+    </main>
+  </div>
+
+  <script>
+    const questions = [
+      {text:'지구 평균 기온이 장기간 상승하는 현상을 무엇이라 하는가?',choices:['해양 산성화','지구 온난화','오존층 파괴','열섬 현상'],correct:1},
+      {text:'이산화탄소(CO₂) 농도 상승이 직접적으로 영향을 주는 현상은?',choices:['오존층 회복','온실효과 강화','산성비 감소','산소 증가'],correct:1},
+      {text:'생물다양성 감소의 주요 원인은?',choices:['서식지 파괴','지구 자전 변화','질소 감소','대륙 이동'],correct:0},
+      {text:'재생에너지에 해당하지 않는 것은?',choices:['태양광','풍력','석탄','지열'],correct:2},
+      {text:'산성비의 원인이 아닌 것은?',choices:['질소산화물','황산화물','이산화탄소','휘발성 유기화합물'],correct:2},
+      {text:'오존층을 파괴하는 물질은?',choices:['CFCs(프레온)','메탄','이산화탄소','암모니아'],correct:0},
+      {text:'탄소중립의 의미로 올바른 것은?',choices:['탄소 배출 금지','배출만큼 흡수 또는 상쇄','화석연료 즉시 중단','대기 탄소 0화'],correct:1},
+      {text:'미세먼지의 영향과 거리가 먼 것은?',choices:['호흡기 질환','심혈관 질환','시력 상실','폐 기능 저하'],correct:2},
+      {text:'생태계의 생산자는?',choices:['초식동물','식물','분해자','육식동물'],correct:1},
+      {text:'지구 평균온도 상승 1.5°C 제한 목표 협약은?',choices:['몬트리올 의정서','파리협정','교토의정서','런던협약'],correct:1}
+    ];
+
+    let idx=0, score=0;
+    const quizEl=document.getElementById('quiz');
+
+    function renderQuestion(){
+      const q=questions[idx];
+      const percent=Math.round((idx/questions.length)*100);
+      quizEl.innerHTML=`
+      <div class="question-card">
+        <div class="qtop">
+          <div>문제 ${idx+1} / ${questions.length}</div>
+          <div class="progress"><i style="width:${percent}%"></i></div>
+        </div>
+        <div class="question">${q.text}</div>
+        <div class="choices">${q.choices.map((c,i)=>`<div class="choice" data-i="${i}">${String.fromCharCode(65+i)}. ${c}</div>`).join('')}</div>
+        <div class="controls"><div class="small">정답 수: <strong>${score}</strong></div></div>
+      </div>`;
+      document.querySelectorAll('.choice').forEach(el=>{
+        el.onclick=()=>{
+          if(el.classList.contains('disabled'))return;
+          const correct=q.correct;
+          const all=document.querySelectorAll('.choice');
+          all.forEach(c=>c.classList.add('disabled'));
+          if(Number(el.dataset.i)===correct){el.classList.add('correct');score++;}
+          else{el.classList.add('wrong');all[correct].classList.add('correct');}
+          setTimeout(()=>{idx++;(idx<questions.length)?renderQuestion():showResult();},1000);
+        };
+      });
+    }
+
+    function showResult(){
+      quizEl.innerHTML=`<div class="result"><div class="score">${score} / ${questions.length}</div></div>`;
+      if(score>=8){
+        quizEl.innerHTML+=`<div class="result-sub">축하합니다! 환경 퀴즈에서 좋은 결과를 얻었어요.</div><div class="balloon-stage" id="balloon-stage"></div>`;
+        launchBalloons();
+      } else if(score<6){
+        quizEl.innerHTML+=`<div class="fail-text">더 공부해서 오세요!!</div>
+        <img src="undefined.jpg" alt="fail" class="fail-img" />`;
+      } else {
+        quizEl.innerHTML+=`<div class="result-sub">수고했어요! 조금만 더 공부하면 완벽해요!</div>`;
+      }
+      quizEl.innerHTML+=`<div style="margin-top:20px;"><button onclick="restart()">다시 풀기</button></div>`;
+    }
+
+    function restart(){ idx=0; score=0; renderQuestion(); }
+
+    function launchBalloons(){
+      const stage=document.getElementById('balloon-stage');
+      const colors=['#ff6b6b','#ffd166','#6bcB77','#4dabf7','#b388eb','#ff9f1c'];
+      for(let i=0;i<12;i++){
+        const b=document.createElement('div');
+        b.className='balloon';
+        b.style.left=Math.random()*90+'%';
+        b.style.background=colors[i%colors.length];
+        b.style.animation=`floatUp ${6+Math.random()*5}s linear ${Math.random()*1}s forwards`;
+        stage.appendChild(b);
+        setTimeout(()=>b.classList.add('pop'),7000);
+      }
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>
