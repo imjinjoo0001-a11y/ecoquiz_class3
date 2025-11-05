@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에코 브릿지 (Eco-Bridge) - 환경을 새롭게, 세상을 이롭게</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 기본 스타일 및 색상 변수 설정 */
+        :root {
+            --color-main-green: #38761D; /* 숲 그린 */
+            --color-light-beige: #F0EAD6; /* 부드러운 베이지 */
+            --color-accent-blue: #0A84FF; /* 포인트 블루 (희망/물) */
+            --color-text-dark: #333333;
+            --color-text-light: #ffffff;
+        }
+
+        /* 5. 디자인: 부드럽고 트렌디한 생태 분위기 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: var(--color-text-dark);
+            background-color: var(--color-light-beige);
+            /* 2. 스크롤 스냅 컨테이너 설정 */
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+
+        /* 헤더 (상단 내비게이션 바) */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--color-main-green);
+        }
+
+        .logo span {
+            color: var(--color-accent-blue);
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--color-text-dark);
+            margin-left: 25px;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--color-main-green);
+        }
+
+        /* 3. 화면을 꽉 채우는 홈페이지 섹션 & 2. 스크롤 스냅 아이템 설정 */
+        section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            scroll-snap-align: start;
+        }
+
+        /* 섹션별 배경 및 폰트 컬러 */
+        #intro {
+            background-color: var(--color-main-green);
+            color: var(--color-text-light);
+        }
+
+        #activities {
+            background-color: var(--color-light-beige);
+        }
+
+        #campaign {
+            background-color: #A9D18E; /* 연한 그린 */
+        }
+
+        #news-story {
+            background-color: var(--color-light-beige);
+        }
+        
+        #support {
+            background-color: var(--color-main-green);
+            color: var(--color-text-light);
+        }
+
+        /* 공통 스타일 */
+        h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1em;
+            max-width: 800px;
+            margin: 10px auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 30px;
+            margin-top: 20px;
+            background-color: var(--color-accent-blue);
+            color: var(--color-text-light);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: #0070e0;
+        }
+
+        /* 1. 소개 섹션 스타일 */
+        #intro h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+        }
+
+        /* 2. 핵심활동 섹션 스타일 */
+        .activity-card-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .activity-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            width: 250px;
+            transition: transform 0.3s;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon {
+            font-size: 3em;
+            color: var(--color-main-green);
+            margin-bottom: 10px;
+        }
+
+        /* 4. 뉴스 및 스토리 섹션 스타일 */
+        .story-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .story-item {
+            flex: 1;
+            padding: 20px;
+            text-align: left;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .story-item h3 {
+            color: var(--color-main-green);
+            font-size: 1.3em;
+            margin-top: 0;
+        }
+
+        /* 4. 후원/문의 섹션 스타일 */
+        #support p {
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        /* 푸터 (하단) 스타일 */
+        footer {
+            padding: 15px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
+            background-color: #e0e0d1;
+        }
+
+        /* 미디어 쿼리: 모바일 최적화 */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                padding: 10px 5%;
+                position: static; /* 모바일에서 고정 해제 */
+            }
+
+            nav {
+                margin-top: 10px;
+            }
+
+            nav a {
+                margin: 0 10px;
+            }
+
+            section {
+                padding: 50px 5%;
+                justify-content: flex-start; /* 모바일에서 상단 정렬 */
+                min-height: 100vh;
+                height: auto;
+            }
+
+            .activity-card-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .story-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            h2 {
+                font-size: 2em;
+            }
+
+            #intro h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">ECO<span>BRIDGE</span></div>
+        <nav>
+            <a href="#intro">소개</a>
+            <a href="#activities">핵심활동</a>
+            <a href="#campaign">참여</a>
+            <a href="#news-story">스토리</a>
+            <a href="#support">후원/문의</a>
+        </nav>
+    </header>
+
+    <section id="intro">
+        <span class="icon" style="font-size: 5em;">🌿🔗👥</span>
+        <h1>에코 브릿지 (Eco-Bridge)</h1>
+        <h2>"세상을 이롭게, 환경을 새롭게"</h2>
+        <p>고등학생들이 주도하는 비영리 환경 재단, 에코 브릿지입니다. 우리는 청소년의 창의적인 시각으로 환경 문제 해결을 위한 다리를 놓습니다.</p>
+        <a href="#activities" class="cta-button">우리의 활동 보기</a>
+    </section>
+
+    <section id="activities">
+        <h2>📚 핵심 활동: 교육 & 멘토링</h2>
+        <p>청소년 환경 교육 콘텐츠 제작 및 멘토링은 에코 브릿지가 세상을 변화시키는 가장 중요한 방법입니다. 미래 세대에게 올바른 환경 지식을 전달하고 실천을 돕습니다.</p>
+        
+        <div class="activity-card-container">
+            <div class="activity-card">
+                <div class="icon">🎬</div>
+                <h3>환경 콘텐츠 제작</h3>
+                <p>기후 변화, 자원 순환 등 다양한 주제의 고품질 교육 영상과 웹툰을 제작합니다.</p>
+            </div>
+            <div class="activity-card">
+                <div class="icon">👨‍🏫</div>
+                <h3>청소년 멘토링</h3>
+                <p>초등학생 및 동년배를 위한 맞춤형 환경 교육 프로그램을 기획하고 운영합니다.</p>
+            </div>
+            <div class="activity-card">
+                <div class="icon">💡</div>
+                <h3>솔루션 개발</h3>
+                <p>학교 및 지역사회의 환경 문제에 대한 실질적인 개선 아이디어를 제시하고 적용합니다.</p>
+            </div>
+        </div>
+        <a href="#campaign" class="cta-button" style="background-color: var(--color-main-green);">참여하기</a>
+    </section>
+
+    <section id="campaign">
+        <h2>🤝 캠페인 참여</h2>
+        <p>에코 브릿지의 다양한 환경 캠페인에 참여하여 변화를 만드는 주인공이 되어보세요!</p>
+        <div class="activity-card-container">
+            <div class="activity-card" style="background-color: var(--color-main-green); color: var(--color-text-light);">
+                <div class="icon" style="color: var(--color-text-light);">📝</div>
+                <h3>콘텐츠 제작팀 모집</h3>
+                <p>영상 편집, 디자인, 기획에 관심 있는 고등학생이라면 누구나 환영합니다.</p>
+            </div>
+            <div class="activity-card" style="background-color: white;">
+                <div class="icon">🎤</div>
+                <h3>멘토링 봉사 신청</h3>
+                <p>환경 지식을 나누고 싶은 학생들을 위한 멘토 프로그램에 참여하세요.</p>
+            </div>
+        </div>
+        <a href="#" class="cta-button">자세히 알아보기</a>
+    </section>
+
+    <section id="news-story">
+        <h2>📢 에코 브릿지 뉴스 & 스토리</h2>
+        <p>우리의 발자취와 참여자들의 생생한 이야기를 통해 재단의 활동을 투명하게 공개합니다.</p>
+        <div class="story-container">
+            <div class="story-item">
+                <h3>[뉴스] '기후변화 콘텐츠', 교육부 우수 콘텐츠 선정!</h3>
+                <p>에코 브릿지가 제작한 교육 영상이 청소년 환경 교육 부문에서...</p>
+                <a href="#">더 보기</a>
+            </div>
+            <div class="story-item">
+                <h3>[스토리] 멘토링 후기: 작은 변화의 시작</h3>
+                <p>초등학생 멘티들과 함께한 6주간의 환경 수업, 감동적인 후기...</p>
+                <a href="#">더 보기</a>
+            </div>
+            <div class="story-item">
+                <h3>[소식] 다음 주 '제로 웨이스트' 포럼 안내</h3>
+                <p>지역사회와 함께하는 환경 포럼에 여러분을 초대합니다...</p>
+                <a href="#">더 보기</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="support">
+        <h2>💚 후원 및 문의</h2>
+        <p>에코 브릿지의 모든 활동은 여러분의 소중한 후원으로 이어집니다. 투명한 재정 운용을 약속드립니다.</p>
+        <p>함께 세상을 이롭게, 환경을 새롭게 만들어갈 파트너를 찾습니다.</p>
+        <a href="#" class="cta-button" style="background-color: var(--color-text-light); color: var(--color-main-green);">후원하기</a>
+        <a href="#" class="cta-button" style="background-color: transparent; border: 2px solid var(--color-text-light); margin-left: 20px;">문의하기</a>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Eco-Bridge Youth Foundation. All rights reserved.</p>
+        <p>이 홈페이지의 지적 소유권은 **임진주 재단**에 있다.</p>
+    </footer>
+
+    <script>
+        // 현재는 별도의 JavaScript 기능이 필요하지 않으므로 비워둠.
+        // 향후 스크롤 시 애니메이션, 모바일 메뉴 토글 등의 기능을 추가할 수 있습니다.
+        console.log("에코 브릿지 웹앱 페이지가 로드되었습니다.");
+    </script>
+</body>
+</html>
